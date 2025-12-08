@@ -21,8 +21,6 @@ module controller(
                             branch_sel,
                             sel_rs //for B, S, and I instructions
 
-
-
     );
 
     //wr_en (for registers)
