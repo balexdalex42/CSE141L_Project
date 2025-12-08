@@ -14,14 +14,14 @@ module controller(
                         sel_rd,
                         //for mux that chooses mem read or alu read
                         alu_mem_sel,
+                        //for choosing next PC val
+                        next_branch_selector,
                         //these last two are for the start and end of the program(s)
                         start,
                         done,            
         output logic [1:0]  alu_op,
                             branch_sel,
                             sel_rs //for B, S, and I instructions
-
-
 
     );
 
@@ -52,8 +52,11 @@ module controller(
     //alu_mem_sel, choose alu output (0) or mem read (1)
     assign alu_mem_sel = (opcode == 3'b011) && (~branch_bits[1]); //seeing if opcode is mem op and branchbit[1] is 0 
 
+    //next_branch_sel, PC + 1 (0) or PC + 1 + branch_out (1)
+    assign next_branch_selector = (branch & (~|branch_bits)) || (opcode == 3'b001); //if addi instr or beq, blt, bov
+
     //start
-    assign start = (opcode == 3'b010) && (&branch_bits);
+    assign start = (opcode == 3'b010) && (&branch_bits); //might not need this
 
     //done
     assign done = (opcode == 3'b011) && (&branch_bits);
