@@ -4,6 +4,7 @@ module PC(
         input logic     clk,
                         reset,
                         start,
+                        done,
         //TBD
         output logic [11:0] out_val
     );
@@ -12,11 +13,11 @@ module PC(
     
     assign out_val = pc_reg;
 
-    always_ff @(posedge clk || posedge reset) begin
+    always_ff @(posedge clk or posedge reset) begin
         if(reset) begin
             pc_reg <= 12'd0;
         end else begin
-            if(!start)
+            if(!start & !done)
                 pc_reg <= in;
         end
     end
