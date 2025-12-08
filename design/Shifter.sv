@@ -11,4 +11,5 @@ module Shifter(
 
     assign shamt = in2[2:0];
     assign out_val = left? (in1 << shamt) : (in1 >> shamt);
+    
 endmodule

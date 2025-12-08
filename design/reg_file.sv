@@ -19,7 +19,7 @@ module reg_file(
     assign read_val1 = regs[read_addr1];
     assign read_val2 = regs[read_addr2];
 
-    always_ff @(posedge clk || posedge reset) begin
+    always_ff @(posedge clk or posedge reset) begin
         //reset logic
         if(reset) begin
             regs[0] <= 8'd0;
