@@ -39,5 +39,6 @@ module ALU(
     assign xor_out = in1 ^ in2;
 
     //shift left/right
+    assign left = ~sub;
     Shifter shifter(.in1(in1), .in2(in2), .left(left), .out_val(shift_out))
 endmodule
