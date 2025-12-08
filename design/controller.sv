@@ -3,7 +3,7 @@ module controller(
         input logic [1:0]   branch_bits,
 
         output logic    wr_en,
-                        carry_in,
+                        // carry_in,
                         sub,
                         alu_src,
                         //for my b and s type instructions (in exec/mem step)
@@ -17,8 +17,10 @@ module controller(
                         start,
                         done,            
         output logic [1:0]  alu_op,
-                            sel_rd, //also for b and s type, but in decode step
+                            sel_rd //also for b and s type, but in decode step
 
 
     );
+
+    //always comb
 endmodule
