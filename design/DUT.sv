@@ -86,6 +86,9 @@ module DUT(
 		.sum(pc_next[11:8]),
 		.cout()); //we don't need this output
 	
+	// beq rd rs PC + 1 + 1
+	// if not eq (jumps)
+	//if eq (jumps)
 	//instantiating our instruction mem
 	instr_mem im(
 		.address(instr_addr),
@@ -225,7 +228,7 @@ module DUT(
 
 	mux1 wb_mux(
 		.in0(alu_out), //from alu
-		.in1(dat_out), //from mem
+		.in1(mem_stage_out), //from mem
 		.sel(alu_mem_sel), //refer to controller: alu_mem_sel, choose alu output (0) or mem read (1)
 		.out_val(wb_out));
 	//
