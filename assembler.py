@@ -90,12 +90,11 @@ def assemble(input_file, output_file):
     machine_code = []
     
     for i, line in enumerate(clean_lines):
-        tokens = re.split(r'[\s,]+', line) # Split by space or comma
+        tokens = re.split(r'[\s,]+', line)
         mnemonic = tokens[0].upper()
         
         try:
-            # R-TYPE (Op: 3, Rs: 3, Rd: 3)
-            # Format: INSTR Rd, Rs
+            # === R-TYPE (Op: 3, Rs: 3, Rd: 3) ===
             if mnemonic in ['ADD', 'ANDB', 'XOR']:
                 rd = parse_register(tokens[1], 3)
                 rs = parse_register(tokens[2], 3)
@@ -104,14 +103,9 @@ def assemble(input_file, output_file):
                 elif mnemonic == 'ANDB': opcode = '110'
                 elif mnemonic == 'XOR':  opcode = '101'
                 
-                # Order defined in ISA: Opcode(3) Rs(3) Rd(3)
-                # Note: User examples show "ADD $3, $2" (Rd, Rs) but binary mapping needs verification.
-                # Standard MIPS is Op Rs Rt Rd. 
-                # "R: 3-bit opcode, 3-bit destination register, 3-bit destination register"
                 bin_str = f"{opcode}{rs:03b}{rd:03b}"
 
             # S-TYPE (Op: 3, Sel: 1, Rs: 2, Rd: 3)
-            # Format: INSTR Rd, Rs (Rs limited to R0-R3)
             elif mnemonic in ['SHL', 'SHR']:
                 opcode = '100'
                 rd = parse_register(tokens[1], 3)
@@ -121,7 +115,6 @@ def assemble(input_file, output_file):
                 bin_str = f"{opcode}{sel}{rs:02b}{rd:03b}"
 
             # B-TYPE (Op: 3, Sel: 2, Rs: 1, Rd: 3)
-            # Format: INSTR Rd, Rs (Rs limited to R0-R1)
             elif mnemonic in ['BEQ', 'BLT', 'BOV', 'LBMEM', 'LBLUT', 'SBMEM']:
                 rd = parse_register(tokens[1], 3)
                 rs = parse_register(tokens[2], 1) # constrained to 1 bit (R0 or R1)
@@ -141,8 +134,6 @@ def assemble(input_file, output_file):
 
             # SPECIAL B-TYPE (No operands)
             elif mnemonic in ['START', 'DONE']:
-                # START: Op 010, Sel 11, Rs 0, Rd 000
-                # DONE:  Op 011, Sel 11, Rs 0, Rd 000
                 if mnemonic == 'START':
                     opcode = '010'
                 else:
@@ -150,23 +141,17 @@ def assemble(input_file, output_file):
                 bin_str = f"{opcode}110000"
 
             # I-TYPE (Op: 3, Imm: 6)
-            # Format: ADDI imm
             elif mnemonic == 'ADDI':
                 opcode = '000'
                 imm_str = tokens[1]
                 bin_str = f"{opcode}{parse_immediate(imm_str, 6)}"
 
-            # Format: JUMP imm
             elif mnemonic == 'JUMP':
                 opcode = '001'
                 arg = tokens[1]
                 
                 # Handle Label
                 if arg in labels:
-                    # Calculate relative offset? Or Absolute? 
-                    # Doc says: "R0 += immediate". This implies relative calculation might happen in hardware,
-                    # or it expects a raw offset. Assuming raw Immediate for now.
-                    # If you want PC-relative jumping in assembler: 
                     target = labels[arg]
                     offset = target - i - 1 # PC is usually current + 1
                     bin_str = f"{opcode}{parse_immediate(str(offset), 6)}"
@@ -176,14 +161,13 @@ def assemble(input_file, output_file):
             else:
                 raise ValueError(f"Unknown instruction: {mnemonic}")
 
-            machine_code.append(f"{bin_str} // {line}")
+            machine_code.append(bin_str)
 
         except Exception as e:
             print(f"Error on line {i+1}: {line}")
             print(f"  {e}")
             sys.exit(1)
 
-    # Output Generation
     with open(output_file, 'w') as f:
         for instr in machine_code:
             f.write(instr + '\n')
