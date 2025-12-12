@@ -9,6 +9,7 @@
 `include "FA_8.sv"
 `include "extender.sv"
 `include "mux_1.sv"
+`include "mux_2.sv"
 
 module DUT(
     input logic 	clk,
@@ -29,7 +30,7 @@ module DUT(
 			sel_rd,
 			alu_mem_sel,
 			next_branch_selector,
-			done;     
+			done_flag;     
 
 	logic [1:0] 	alu_op,
 					branch_sel,
@@ -115,7 +116,7 @@ module DUT(
 		//for PC + 1 or PC + 1 + branch selector
 		.next_branch_selector(next_branch_selector),
 		//end of the program(s)
-		.done(done), 
+		.done(done_flag), 
 		//outputs
 		.alu_op(alu_op),
 		.branch_sel(branch_sel),
@@ -125,8 +126,33 @@ module DUT(
 	//Decode Stage
 
 	//what feeds the regfile
+	//rs
+	logic [2:0] rs_1b_to_full, rs_2b_to_full;
+	extender #(.INPUT_WIDTH(1), .DATA_WIDTH(3)) rs_1b_ext( //For B-Type
+		.in(instr[3]), 
+		.is_sign_ext(0), 
+		.out_val(rs_1b_to_full));
+		
+	extender #(.INPUT_WIDTH(2), .DATA_WIDTH(3)) rs_2b_ext( //for S-Type
+		.in(instr[4:3]), 
+		.is_sign_ext(0), 
+		.out_val(rs_2b_to_full));
 
-
+	mux_2  #(.DATA_WIDTH(3)) rs_sel_mux(
+		.in0(instr[5:3]), //R-Type
+		.in1(rs_2b_to_full), //S-Type
+		.in2(rs_1b_to_full), //B-Type
+		.in3(instr[5:3]), //default (not needed)
+		.sel(sel_rs),
+		.out_val(rs_addr));
+	//rd
+	logic zero_rd = 3'd0; //for I-type instr
+	mux_1 #(.DATA_WIDTH(3)) rd_sel_mux(
+		.in0(instr[2:0]), 
+		.in1(zero_rd), 
+		.sel(sel_rd), 
+		.out_val(rd_addr));
+	
 	//reg-file
 	reg_file regs(
 		.read_addr1(rs_addr),
@@ -146,9 +172,15 @@ module DUT(
 
 	//determining input 2 of ALU 
 	assign imm = instr[5:0]; //our 6-bit immediate, we need to choose to add to Rd with Rs or imm
+	logic [8:0] imm_full;
+	extender #(.INPUT_WIDTH(6)) imm_ext(
+		.in(imm), 
+		.is_sign_ext(1), 
+		.out_val(imm_full));
+
 	mux_1 alu_src_mux(
 		.in0(rs_out),
-		.in1(imm), 
+		.in1(imm_full), 
 		.sel(alu_src), 
 		.out_val(alu_src_out));
 
@@ -159,13 +191,13 @@ module DUT(
 		.branch_sel(branch_sel),
 		.sub(sub),
 		.branch(branch),
-		.shift_left(shift_left)
+		.shift_left(shift_left),
 		//output
-		.out_val(alu_out);
+		.out_val(alu_out)
 	);
 
 	//branching logic; when we branch we take our output from ALU and extend it, and either choose that or our OG PC
-	extender #(.INPUT_WIDTH(8), .DATA_WIDTH(12)) zero_extender12(
+	extender #(.INPUT_WIDTH(8), .DATA_WIDTH(12)) alu_sign_extender12(
 		.in(alu_out),
 		.is_sign_ext(1), //0 = zero_ext, 1 = sign_ext
 		.out_val(branch_out));

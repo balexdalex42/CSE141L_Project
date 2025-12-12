@@ -1,3 +1,4 @@
+//programs instruction memory
 module instr_mem(
         input logic [11:0]  address,
 
