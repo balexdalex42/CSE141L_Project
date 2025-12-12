@@ -17,7 +17,7 @@ module PC(
         if(reset) begin
             pc_reg <= 12'd0;
         end else begin
-            if(!start & !done)
+            if(~start & ~done)
                 pc_reg <= in;
         end
     end

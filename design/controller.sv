@@ -46,7 +46,7 @@ module controller(
     //for whether or not it's a branch instruction
     assign branch = (opcode == 3'b010);
 
-    //select rd (as well as reg write), select whether we want to write into Rd or R0 (for ADDI)
+    //select rd (as well as reg write), select whether we want to write into Rd (0) or R0 (1) (for ADDI)
     assign sel_rd = (opcode[2:1] == 2'b00);
 
     //alu_mem_sel, choose alu output (0) or mem read (1)
@@ -56,7 +56,7 @@ module controller(
     assign next_branch_selector = (branch & (~&branch_bits)) || (opcode == 3'b001); //if addi instr or beq, blt, bov
 
     //done
-    assign done = (opcode == 3'b011) && (&branch_bits);
+    assign done = (opcode == 3'b011) && (&branch_bits); //this terminates the program
 
     //alu_op (please refer to ALU.sv for the use of these control bits)
 
