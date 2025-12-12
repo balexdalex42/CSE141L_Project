@@ -84,8 +84,8 @@ ADDI 0d3
 SBMEM $2, $0 //Mem[3] = R2
 ADDI 0d1
 SBMEM $3, $0 //Mem[4] = R3
-//now we have to multiply part by part
-XOR $0, $0
+//now we have to multiply part by part (Mem[3] by Mem[2] and then Mem[4] by Mem[2])
+XOR $6, $6
 ADDI 0d2
 LBMEM $7, $0 //load first multiplicand
 ADDI 0d1
