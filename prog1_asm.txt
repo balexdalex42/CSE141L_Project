@@ -19,7 +19,7 @@ ADD $0, $2  //put j in R0
 LBMEM $1, $0 //R1=A[j], now R7 = A[i] and R1 = A[j]
 XOR $1, $7 //get xor val
 LBLUT $1, $1 //get R1[7:4] = hamming[7:4] and hamming[3:0]
-XOR R0, R0
+XOR $0, $0
 ADDI 0d4 //shift amount
 XOR $2, $2
 ADD $2, $1 //we will get the hamming distance of the upper (R2) and lower half (R1)
@@ -63,11 +63,11 @@ XOR $1, $1
 ADD $1, $0 //load 15 into R1
 XOR $0, $0
 BLT $3, $1 //we need to check i < 15
-JUMP 0d5//leave loops and now we can store our results (go to instr 72) since i >= 15
+JUMP 0d5 //leave loops and now we can store our results (go to instr 72) since i >= 15
 XOR $1, $1
 ADD $1, $3 //we need i to be stored in R1
 ADDI 0d-32  //R0 now has -32
-ADD 0d-32 //R0 now has -64
+ADDI 0d-32 //R0 now has -64
 JUMP 0d-4 //We need to jump back to the instruction 4 (4 - 71 - 1= -68)
 XOR $0, $0
 ADDI 0d16 //need to load $4 into MEM[16]
@@ -77,4 +77,3 @@ SBMEM $5, $0
 XOR $0, $0
 XOR $0, $0 //not needed but will make sure everything writes before I terminate
 DONE
-
