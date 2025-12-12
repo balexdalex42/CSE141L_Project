@@ -29,7 +29,6 @@ module DUT(
 			sel_rd,
 			alu_mem_sel,
 			next_branch_selector,
-			start,
 			done;     
 
 	logic [1:0] 	alu_op,
@@ -86,6 +85,9 @@ module DUT(
 		.sum(pc_next[11:8]),
 		.cout()); //we don't need this output
 	
+	// beq rd rs PC + 1 + 1
+	// if not eq (jumps)
+	//if eq (jumps)
 	//instantiating our instruction mem
 	instr_mem im(
 		.address(instr_addr),
@@ -93,8 +95,10 @@ module DUT(
 
 	//creating our control unit
 	controller control_unit(
+		//inputs
 		.opcode(instr[8:6]),
 		.branch_bits(instr[5:4]),
+		.start(start),
 		//outputs
 		.wr_en(wreg_en),
 		.sub(sub),
@@ -110,8 +114,7 @@ module DUT(
 		.alu_mem_sel(alu_mem_sel),
 		//for PC + 1 or PC + 1 + branch selector
 		.next_branch_selector(next_branch_selector),
-		//these last two are for the start and end of the program(s)
-		.start(start),
+		//end of the program(s)
 		.done(done), 
 		//outputs
 		.alu_op(alu_op),
@@ -164,7 +167,7 @@ module DUT(
 	//branching logic; when we branch we take our output from ALU and extend it, and either choose that or our OG PC
 	extender #(.INPUT_WIDTH(8), .DATA_WIDTH(12)) zero_extender12(
 		.in(alu_out),
-		.is_sign_ext(0), //0 = zero_ext, 1 = sign_ext
+		.is_sign_ext(1), //0 = zero_ext, 1 = sign_ext
 		.out_val(branch_out));
 
 	//making a 12-bit full adder
@@ -225,7 +228,7 @@ module DUT(
 
 	mux1 wb_mux(
 		.in0(alu_out), //from alu
-		.in1(dat_out), //from mem
+		.in1(mem_stage_out), //from mem
 		.sel(alu_mem_sel), //refer to controller: alu_mem_sel, choose alu output (0) or mem read (1)
 		.out_val(wb_out));
 	//

@@ -1,6 +1,7 @@
 module controller(
         input logic [2:0]   opcode,
         input logic [1:0]   branch_bits,
+        input logic     start, //for starting logic
         //our control signals
         output logic    wr_en,
                         sub,
@@ -17,7 +18,6 @@ module controller(
                         //for choosing next PC val
                         next_branch_selector,
                         //these last two are for the start and end of the program(s)
-                        start,
                         done,            
         output logic [1:0]  alu_op,
                             branch_sel,
@@ -26,7 +26,7 @@ module controller(
     );
 
     //wr_en (for registers)
-    assign wr_en = opcode[2] || (~|opcode[1:0]);
+    assign wr_en = (opcode[2] | (~|opcode[1:0])) & ~start & ~done;
 
     //sub (for comparison in ALU)
     assign sub = (opcode == 3'b010) && ~(branch_bits[1]); //if branch bits is 2'b0x then we know it's beq or blt
@@ -41,7 +41,7 @@ module controller(
     assign use_lut = branch_bits[0];
 
     //mem_write, only for the store byte instrution
-    assign mem_write = (opcode == 3'b011) && (branch_bits == 2'b10);
+    assign mem_write = (opcode == 3'b011) & (branch_bits == 2'b10) & ~start & ~done; 
 
     //for whether or not it's a branch instruction
     assign branch = (opcode == 3'b010);
@@ -53,10 +53,7 @@ module controller(
     assign alu_mem_sel = (opcode == 3'b011) && (~branch_bits[1]); //seeing if opcode is mem op and branchbit[1] is 0 
 
     //next_branch_sel, PC + 1 (0) or PC + 1 + branch_out (1)
-    assign next_branch_selector = (branch & (~|branch_bits)) || (opcode == 3'b001); //if addi instr or beq, blt, bov
-
-    //start
-    assign start = (opcode == 3'b010) && (&branch_bits); //might not need this
+    assign next_branch_selector = (branch & (~&branch_bits)) || (opcode == 3'b001); //if addi instr or beq, blt, bov
 
     //done
     assign done = (opcode == 3'b011) && (&branch_bits);
