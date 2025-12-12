@@ -29,7 +29,7 @@ module test_bench;
     OpB = -4;				   // for now, try out different values 
     D1.dm.core[0] = OpA;
     D1.dm.core[1] = OpB;	   // load values into mem, copy to Tmp array
-    #10ns   $display("%d, %d",OpA, OpB;
+    #10ns   $display("%d, %d",OpA, OpB);
 // 	compute correct answers
     #10ns  Prod = OpA * OpB;		      // compute prod.
     #10ns  reset = 'b0;

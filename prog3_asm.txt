@@ -1,0 +1,109 @@
+LBMEM $7, $0 //load first multiplicand
+ADDI 0d1
+LBMEM $6, $0 //load second 
+ADDI 0d1
+LBMEM $5, $0 //load third (for signage related stuff)
+ADD $1, $6
+XOR $1, $7 //take the XOR, we are going to see if the XOR is signed (if the MSB is 1) and store that in mem
+XOR $1, $5 //take next XOR (- * - * - = -, but - * - * + = +)
+XOR $0, $0
+ADDI 0d6
+SBMEM $1, $0 //store that XOR quantity into mem[6] 
+ADDI 0d8 //we are trying to load 0xff into $1
+XOR $1, $1
+ADD $1, $0
+XOR $0, $0
+ADDI 0d4 //this is our shift value
+SHL $1, $0 //now we have R1 = 0xf0
+ADDI 0d11 //R0 has 0xf again
+ADD $1, $0 //now 0xff is loaded into R1
+XOR $0, $0
+ADDI 0d7
+SBMEM $1, $0 //let's load 0xff into mem[7], will act as NOT in the future
+ADD $5, $1 //let's keep 0xff while we can
+XOR $1, $1
+XOR $0, $0
+BLT $7, $0 //see if $7 is negative
+JUMP 0d4 //jump to line 28 (potentially flipping the sign of the next multiplicand)
+XOR $7, $5 //if it is let's unsign it
+ADDI 0d1
+ADD $7, $0 //value in $7 got flipped
+XOR $0, $0
+BLT $6, $0 //see if $6 is negative
+JUMP 0d7 //jump to line 38 (potentially flipping the sign of the next multiplicand)
+XOR $6, $5 //if it is let's unsign it
+ADD $6, $0 //value in $7 got flipped
+XOR $1, $1 //will use this to store i
+XOR $0, $0 //let's start the loop now (only need 7 iterations since MSB of second multiplicand is 0 guaranteed) ***************LOOP STARTS HERE
+XOR $4, $4 //zero out R4
+ADD $4, $7 //R4 will be the temp holder of R7 for ANDB
+ANDB $4, $6 //we see if R6[0] is 1, if it is R4 = R4, if not R4 = 0
+XOR $0, $0 
+BEQ $4, $0 
+JUMP 0d1   
+JUMP 0d17  // Jump to i++ (Skip the addition logic)
+SHL $4, $1 //$4 will have the bottom bits (need to shift left per iteration #)
+XOR $0, $0
+ADD $0, $4 // Copy R4 to R0 for BOV check
+BOV $2, $0 // Check if R2 + R0 overflows
+JUMP 0d3   // Skip carry logic (Jump over XOR, ADDI, ADD)
+XOR $0, $0 // Clear R0 (Required for ADDI)
+ADDI 0d1
+ADD $3, $0 //add carryout from lower 8 to top 8
+ADD $2, $4 //add shifted $4 into low bit
+ANDB $4, $6 //do it again, we need this now for our high bit reg
+XOR $0, $0
+ADD $0, $1 // put i into R0 for ADDI ease
+ADDI 0d-8 //R0 = i - 8 
+XOR $0, $5
+ADDI 0d1 // R0 = -(i-8)= 8-i (our right shift amount!)
+SHR $4, $0 //this will now go into our top 8 bits
+ADD $3, $4
+XOR $0, $0 //JUMP HERE IF ANDB results in 0 **************************
+ADDI 0d1
+ADD $1, $0 //i++
+SHR $6, $0 //shift the 2nd multiplicand right
+XOR $4, $4
+ADDI 0d6
+ADD $4, $0 //R4 has val 7
+XOR $0, $0
+ADDI 0d-18 // Pre-load R0 with half the jump distance
+ADDI 0d-18 // Pre-load R0 with the rest (-36 total)
+BEQ $4, $1 // If i == 7, skip the jump (Fall through to exit)
+JUMP 0d0   // Else, Jump PC + 1 + R0 (-36) -> Back to Loop Start
+XOR $0, $0 // Clear R0 (since it was -36) before continuing
+XOR $1, $1
+ADD $1, $0
+XOR $0, $0
+BOV $2, $1 //see if it causes a cout
+JUMP 0d1 //don't add cout (note )
+ADD $3, $1 //add the cout if cout is caused in low bits
+ADD $2, $1 //now the full number is correct
+XOR $0, $0
+ADDI 0d3
+SBMEM $2, $0 //Mem[3] = R2
+ADDI 0d1
+SBMEM $3, $0 //Mem[4] = R3
+//now we have to multiply part by part
+XOR $0, $0
+ADDI 0d2
+LBMEM $7, $0 //load first multiplicand
+ADDI 0d1
+LBMEM $6, $0 //load second multiplicand
+
+
+
+// XOR $1, $1 //we now need to see if our final product needs to be turned negative or not (based on the XOR val from the start)
+// XOR $0, $0
+// ADDI 0d6
+// LBMEM $1, $0 //load the XOR value back
+// XOR $0, $0
+// BLT $1, $0 //test to see if the XOR < 0 (checking if sign bit is up)
+// JUMP 0d11 //if not signed go straight to mem writing (instr 83)
+// XOR $2, $5
+// XOR $3, $5 //flip bits of top and bottom
+// XOR $0, $0
+// ADDI 0d1
+XOR $0, $0 
+XOR $0, $0 //to make sure all is written to mem (takes up 2 more clock cycles)
+DONE
