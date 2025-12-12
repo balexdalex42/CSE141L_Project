@@ -1,16 +1,3 @@
-`include "PC.sv"
-`include "data_mem.sv"
-`include "instr_mem.sv"
-`include "reg_file.sv"
-`include "ALU.sv"
-`include "controller.sv"
-`include "FA_1.sv"
-`include "FA_4.sv"
-`include "FA_8.sv"
-`include "extender.sv"
-`include "mux_1.sv"
-`include "mux_2.sv"
-
 module DUT(
     input logic 	clk,
         			reset, 

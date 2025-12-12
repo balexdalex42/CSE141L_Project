@@ -1,8 +1,3 @@
-`include "FA_8.sv"
-`include "shifter.sv"
-`include "mux_1.sv"
-`include "mux_2.sv"
-`include "extender.sv"
 module ALU(
         input logic [7:0]   in1, in2,
         input logic [1:0]   alu_op,

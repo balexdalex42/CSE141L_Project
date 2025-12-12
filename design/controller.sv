@@ -30,7 +30,7 @@ module controller(
         case(opcode)
             //jump and branching
             3'b010,
-            3'b001: wr_en = 0
+            3'b001: wr_en = 0;
             //sbmem or done
             3'b011:
                 wr_en = ~branch_bits[1]; //if 1x -> store or done

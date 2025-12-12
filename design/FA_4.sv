@@ -1,4 +1,3 @@
-`include "FA_1.sv"
 //our 8-bit full adder for our ALU
 module FA_4(
     input logic[3:0]    in1,
