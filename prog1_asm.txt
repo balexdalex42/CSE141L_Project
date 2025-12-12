@@ -1,0 +1,79 @@
+ADDI 0d8 
+ADD $4, $0 //R4 will store min (initially 8), R5 will store max, 
+XOR $1,$1 //outer loop R1 starts at 0 (i = 0), where R1 temp stores i
+XOR $7, $7  //(OUTER LOOP JUMP HERE) ******************************
+LBMEM $7, $1 //R7 will store A[i] 
+XOR $0, $0 
+ADDI 0d17
+SBMEM $1, $0 //store i in MEM[17], this will free up 2 registers when we store j in MEM
+XOR $0, $0
+XOR $2, $2
+ADD $2, $1  //j = i
+ADDI 0d1
+ADD $2, $0  //R2 stores j= i+1
+XOR $0, $0  //start of nest loop (INNER LOOP JUMP HERE) ****************************
+ADDI 0d16
+SBMEM $2, $0 //store j in MEM[16]
+XOR $0, $0
+ADD $0, $2  //put j in R0
+LBMEM $1, $0 //R1=A[j], now R7 = A[i] and R1 = A[j]
+XOR $1, $7 //get xor val
+LBLUT $1, $1 //get R1[7:4] = hamming[7:4] and hamming[3:0]
+XOR $0, $0
+ADDI 0d4 //shift amount
+XOR $2, $2
+ADD $2, $1 //we will get the hamming distance of the upper (R2) and lower half (R1)
+SHR $2, $0 //get top 4 bits
+SHL $1, $0
+SHR $1, $0 //this shift left and shift right elims the MSBs
+ADD $1, $2 //now we get the final hamming distance in R1
+XOR $0, $0 //prep for jump command
+BLT $4, $1 //min < dist?
+JUMP 0d1 //we want to replace min with dist (line 32 and 33)
+JUMP 0d2 //just go to next comparison (go to next BLT) since min < dist
+XOR $4, $4
+ADD $4, $1
+BLT $5, $1 //max < dist
+JUMP 0d2 //if max >= dist don't do anything skip th
+XOR $5, $5 //max < dist therefore we need to replace max
+ADD $5, $1 //max = R1
+XOR $0, $0 
+ADDI 0d16 //R0 = 16
+LBMEM $2, $0 //load back in j
+XOR $0, $0
+ADDI 0d1
+ADD $2, $0 //j++
+ADDI 0d15 //put R0 back at 16
+XOR $1, $1
+ADD $1, $0 //R1 = 16
+XOR $0, $0 
+BLT $2, $1 //ok now we are at the for loop (check j < 16)
+JUMP 0d3 //exit nested loop (j>=16)! (Need to jump to instr 55)
+XOR $0, $0
+ADDI 0d-32 //prep the jump (the jump will be -32 + jumpamt)
+JUMP 0d-8 //need to jump back to instruction 14 (need to jump (14-53)- 1 = -40)
+XOR $0, $0
+ADDI 0d17
+LBMEM $3, $0 //load i into 3
+XOR $0, $0
+ADDI 0d1 
+ADD $3, $0 // i++
+ADDI 0d14 //now R0 has 15
+XOR $1, $1
+ADD $1, $0 //load 15 into R1
+XOR $0, $0
+BLT $3, $1 //we need to check i < 15
+JUMP 0d5 //leave loops and now we can store our results (go to instr 72) since i >= 15
+XOR $1, $1
+ADD $1, $3 //we need i to be stored in R1
+ADDI 0d-32  //R0 now has -32
+ADDI 0d-32 //R0 now has -64
+JUMP 0d-4 //We need to jump back to the instruction 4 (4 - 71 - 1= -68)
+XOR $0, $0
+ADDI 0d16 //need to load $4 into MEM[16]
+SBMEM $4, $0
+ADDI 0d1 //need to load $5 into MEM[17]
+SBMEM $5, $0
+XOR $0, $0
+XOR $0, $0 //not needed but will make sure everything writes before I terminate
+DONE
