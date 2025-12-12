@@ -20,7 +20,7 @@ module DUT(
   	);
 
 	//from our controller
-	logic 	wmem_en	// data_mem write enable
+	logic 	wmem_en,	// data_mem write enable
 			wreg_en, // reg-file write en
 			sub, //sub flag from control
 			alu_src, 
@@ -34,7 +34,7 @@ module DUT(
 
 	logic [1:0] 	alu_op,
 					branch_sel,
-					sel_rs
+					sel_rs;
 
 	logic [2:0] 	rs_addr,
 					rd_addr; //these are the register addresses

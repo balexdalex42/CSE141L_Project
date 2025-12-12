@@ -26,7 +26,18 @@ module controller(
     );
 
     //wr_en (for registers)
-    assign wr_en = (opcode[2] | (~|opcode[1:0])) & ~start & ~done;
+    always_comb begin
+        case(opcode)
+            //jump and branching
+            3'b010,
+            3'b001: wr_en = 0
+            //sbmem or done
+            3'b011:
+                wr_en = ~branch_bits[1]; //if 1x -> store or done
+            default:
+                wr_en = 1;
+        endcase
+    end
 
     //sub (for comparison in ALU)
     assign sub = (opcode == 3'b010) && ~(branch_bits[1]); //if branch bits is 2'b0x then we know it's beq or blt
@@ -68,9 +79,9 @@ module controller(
             3'b011,
             3'b111: alu_op = 2'b00; //all adds where branches, mem accesses, addi, jump, add use the add function
             
-            3'b101: alu_op = 2'b01; //andb
-
-            3'b110: alu_op = 2'b10; //xor
+            3'b110: alu_op = 2'b01; //andb
+            
+            3'b101: alu_op = 2'b10; //xor
 
             3'b100: alu_op = 2'b11; //shift
         endcase
