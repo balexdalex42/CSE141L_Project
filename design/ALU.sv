@@ -26,7 +26,7 @@ module ALU(
     //     endcase
     // end
     
-    mux2 alu_op_mux(.in0(add_out), .in1(andb_out), .in2(xor_out), .in3(shift_out), .sel(alu_op), .out_val(out_val));
+    mux_2 alu_op_mux(.in0(add_out), .in1(andb_out), .in2(xor_out), .in3(shift_out), .sel(alu_op), .out_val(out_val));
 
 
     //add section
@@ -38,11 +38,11 @@ module ALU(
         sign = fa_out[7];
     end
     //select flag based on control bits
-    mux2 #(.DATA_WIDTH(1)) flag_selector(.in0(zero), .in1(sign), .in2(overflow), .in3(zero), .sel(branch_sel), .out_val(selected_flag));
+    mux_2 #(.DATA_WIDTH(1)) flag_selector(.in0(zero), .in1(sign), .in2(overflow), .in3(zero), .sel(branch_sel), .out_val(selected_flag));
     //zero extend them
     extender #(.INPUT_WIDTH(1)) zero_ext(.in(selected_flag), .is_sign_ext(0), .out_val(branch_out));
     //now we choose either branch_out or fa_out
-    mux1 add_selector(.in0(fa_out), .in1(branch_out), .sel(branch), .out_val(add_out));
+    mux_1 add_selector(.in0(fa_out), .in1(branch_out), .sel(branch), .out_val(add_out));
     //andb section
     assign andb_out = in1 & {8{in2[0]}};
 

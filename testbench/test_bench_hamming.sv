@@ -30,7 +30,7 @@ module test_bench;
 	Min = 'd8;						         // start test bench Min at max value
 	Max = 'd0;						         // start test bench Max at min value
     $readmemb("test1_2.txt",D1.dm.core);
-
+    $readmemb("prog1_mcode.txt", D1.im.instr_core);
     for(int i=0; i<16; i++) begin
       Tmp[i] = {D1.dm.core[i]};
       $display("%d:  %b",i,Tmp[i]);
@@ -59,6 +59,7 @@ module test_bench;
     end   
 	// D1.dm.core[16] = Min;
 	// D1.dm.core[17] = Max;
+  $display("PC: %d", D1.prog_ct.out_val);
 	#200ns reset = 'b0;
 	#200ns start = 'b0; 
     #200ns wait (done);						 // avoid false done signals on startup

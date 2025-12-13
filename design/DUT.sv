@@ -64,14 +64,15 @@ module DUT(
 		.in2(8'd1),
 		.cin(0),
 		.sum(pc_next[7:0]),
-		.cout(pc_cin1));
+		.overflow(pc_cin1));
 
+	logic fake_wire2;
 	FA_4 PC_next2(
 		.in1(pc_out[11:8]),
 		.in2(0),
 		.cin(pc_cin1),
 		.sum(pc_next[11:8]),
-		.cout()); //we don't need this output
+		.cout(fake_wire2)); //we don't need this output
 	
 	// beq rd rs PC + 1 + 1
 	// if not eq (jumps)
@@ -196,14 +197,15 @@ module DUT(
 		.in2(branch_out[7:0]),
 		.cin(0),
 		.sum(pc_next_branch[7:0]),
-		.cout(pc_cin2));
+		.overflow(pc_cin2));
 
+	logic fake_wire;
 	FA_4 PC_next_branch2(
 		.in1(pc_next[11:8]),
 		.in2(branch_out[11:8]),
 		.cin(pc_cin2),
 		.sum(pc_next_branch[11:8]),
-		.cout()); //not needed
+		.cout(fake_wire)); //not needed
 	//now we can select whether or not we want pc + 1 OR pc + 1 + branch_out
 
 	mux_1 #(.DATA_WIDTH(12)) next_branch(
@@ -235,7 +237,7 @@ module DUT(
 		.out_val(lut_out[3:0]));
 
 	//now we need to select our memory read signal (from lut (1) or mem(0))
-	mux1 mem_stage_mux(
+	mux_1 mem_stage_mux(
 		.in0(dat_out), 
 		.in1(lut_out), 
 		.sel(use_lut), 
@@ -245,7 +247,7 @@ module DUT(
 	//writeback stage
 	//
 
-	mux1 wb_mux(
+	mux_1 wb_mux(
 		.in0(alu_out), //from alu
 		.in1(mem_stage_out), //from mem
 		.sel(alu_mem_sel), //refer to controller: alu_mem_sel, choose alu output (0) or mem read (1)
