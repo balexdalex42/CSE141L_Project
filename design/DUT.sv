@@ -134,7 +134,8 @@ module DUT(
 		.sel(sel_rs),
 		.out_val(rs_addr));
 	//rd
-	logic zero_rd = 3'd0; //for I-type instr
+  	logic [2:0] zero_rd; //for I-type instr
+  	assign zero_rd =  = 3'd0;
 	mux_1 #(.DATA_WIDTH(3)) rd_sel_mux(
 		.in0(instr[2:0]), 
 		.in1(zero_rd), 
@@ -255,3 +256,16 @@ module DUT(
 	//
 
 endmodule
+
+// # ** Warning: (vsim-3015) [PCDPC] - Port size (3) does not match connection size (1) for port 'in1'. The port definition is at: mux_1.sv(4).
+// #    Time: 0 ns  Iteration: 0  Instance: /test_bench/D1/rd_sel_mux File: DUT.sv Line: 138
+// # ** Warning: (vsim-3015) [PCDPC] - Port size (8) does not match connection size (9) for port 'out_val'. The port definition is at: extender.sv(6).
+// #    Time: 0 ns  Iteration: 0  Instance: /test_bench/D1/imm_ext File: DUT.sv Line: 164
+// # ** Warning: (vsim-3015) [PCDPC] - Port size (8) does not match connection size (9) for port 'in1'. The port definition is at: mux_1.sv(4).
+// #    Time: 0 ns  Iteration: 0  Instance: /test_bench/D1/alu_src_mux File: DUT.sv Line: 169
+// # ** Warning: (vsim-3015) [PCDPC] - Port size (8) does not match connection size (1) for port 'out_val'. The port definition is at: mux_1.sv(7).
+// #    Time: 0 ns  Iteration: 0  Instance: /test_bench/D1/alu_src_mux File: DUT.sv Line: 169
+// # ** Warning: (vsim-3015) [PCDPC] - Port size (8) does not match connection size (1) for port 'in2'. The port definition is at: ALU.sv(2).
+// #    Time: 0 ns  Iteration: 0  Instance: /test_bench/D1/alu File: DUT.sv Line: 175
+// # ** Warning: (vsim-3015) [PCDPC] - Port size (1) does not match connection size (32) for port 'is_sign_ext'. The port definition is at: extender.sv(4).
+// #    Time: 0 ns  Iteration: 0  Instance: /test_bench/D1/alu/zero_ext File: ALU.sv Line: 43
