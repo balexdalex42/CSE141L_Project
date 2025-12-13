@@ -40,7 +40,7 @@ module ALU(
     //select flag based on control bits
     mux_2 #(.DATA_WIDTH(1)) flag_selector(.in0(zero), .in1(sign), .in2(overflow), .in3(zero), .sel(branch_sel), .out_val(selected_flag));
     //zero extend them
-    extender #(.INPUT_WIDTH(1)) zero_ext(.in(selected_flag), .is_sign_ext(0), .out_val(branch_out));
+    extender #(.INPUT_WIDTH(1)) zero_ext(.in(selected_flag), .is_sign_ext(1'd0), .out_val(branch_out));
     //now we choose either branch_out or fa_out
     mux_1 add_selector(.in0(fa_out), .in1(branch_out), .sel(branch), .out_val(add_out));
     //andb section

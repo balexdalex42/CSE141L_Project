@@ -16,8 +16,9 @@ module DUT(
 			branch,
 			sel_rd,
 			alu_mem_sel,
-			next_branch_selector,
-			done_flag;     
+			sel_pc_next,
+			done_flag,
+			wpc_en;     
 
 	logic [1:0] 	alu_op,
 					branch_sel,
@@ -26,58 +27,39 @@ module DUT(
 	logic [2:0] 	rs_addr,
 					rd_addr; //these are the register addresses
 
-	logic [5:0] 	imm;
+	logic [5:0] 	imm; //immediate value low 6 bits of instr
 
-	logic [7:0] 	rs_out,
-					rd_out,
-					alu_out,
-					mem_addr,    // data_mem address pointer
-					dat_in,  // data_mem data ports
-					dat_out,
-					lut_out, //output of our lut
-					mem_stage_out,
-					wb_out; //output of alu
+	logic [7:0] 	rs_out, //decode stage
+					rd_out, 
+					alu_out, //exec stage
+					mem_stage_out, //mem stage
+					wb_out; //wb stage
 
 	logic [8:0] 	instr;
 
 	logic [11:0] 	pc_in, // input for our PC
 					pc_out,
-					pc_next,
-					pc_next_branch,
 					instr_addr, //instr_mem address pointer 
 					branch_out;
 
+	//MOST IMPORTANT OUTPUT:
+	assign done = done_flag;
 	//CONNECTING OUR MODULES
 
 	//creating prog_ct
-	assign instr_addr = pc_out;
+	
 	PC prog_ct(
+		.in(pc_in),
 		.clk(clk),
 		.reset(reset),
-		.start(start),
-		.in(pc_in),
+		.wpc_en(wpc_en),
 		.out_val(pc_out));
-
-	logic pc_cin1;
-	FA_8 PC_next1(
-		.in1(pc_out[7:0]),
-		.in2(8'd1),
-      .cin(1'd0),
-		.sum(pc_next[7:0]),
-		.overflow(pc_cin1));
-
-	logic fake_wire2;
-	FA_4 PC_next2(
-		.in1(pc_out[11:8]),
-      .in2(4'd0),
-		.cin(pc_cin1),
-		.sum(pc_next[11:8]),
-		.cout(fake_wire2)); //we don't need this output
 	
 	// beq rd rs PC + 1 + 1
 	// if not eq (jumps)
 	//if eq (jumps)
 	//instantiating our instruction mem
+	assign instr_addr = pc_out;
 	instr_mem im(
 		.address(instr_addr),
 		.out_val(instr));
@@ -101,10 +83,13 @@ module DUT(
 		.sel_rd(sel_rd),
 		//for mux that chooses mem read or alu read
 		.alu_mem_sel(alu_mem_sel),
-		//for PC + 1 or PC + 1 + branch selector
-		.next_branch_selector(next_branch_selector),
+		//for PC + 1 or PC + 1 + jump amt
+		.sel_pc_next(sel_pc_next),
 		//end of the program(s)
 		.done(done_flag), 
+		//enable for program counter
+		.wpc_en(wpc_en),
+
 		//outputs
 		.alu_op(alu_op),
 		.branch_sel(branch_sel),
@@ -135,7 +120,7 @@ module DUT(
 		.out_val(rs_addr));
 	//rd
   	logic [2:0] zero_rd; //for I-type instr
-  	assign zero_rd =  = 3'd0;
+  	assign zero_rd  = 3'd0;
 	mux_1 #(.DATA_WIDTH(3)) rd_sel_mux(
 		.in0(instr[2:0]), 
 		.in1(zero_rd), 
@@ -161,12 +146,13 @@ module DUT(
 
 	//determining input 2 of ALU 
 	assign imm = instr[5:0]; //our 6-bit immediate, we need to choose to add to Rd with Rs or imm
-	logic [8:0] imm_full;
+	logic [7:0] imm_full; //we want our imm to be an 8-bit sign-ext val
 	extender #(.INPUT_WIDTH(6)) imm_ext(
 		.in(imm), 
-      .is_sign_ext(1'd1), 
+      	.is_sign_ext(1'd1), 
 		.out_val(imm_full));
 
+	logic [7:0] alu_src_out; //will be the output of the alu_src mux (we need to choose Rs or sign-ext imm)
 	mux_1 alu_src_mux(
 		.in0(rs_out),
 		.in1(imm_full), 
@@ -188,47 +174,30 @@ module DUT(
 	//branching logic; when we branch we take our output from ALU and extend it, and either choose that or our OG PC
 	extender #(.INPUT_WIDTH(8), .DATA_WIDTH(12)) alu_sign_extender12(
 		.in(alu_out),
-      .is_sign_ext(1'd1), //0 = zero_ext, 1 = sign_ext
+      	.is_sign_ext(1'd1), //0 = zero_ext, 1 = sign_ext
 		.out_val(branch_out));
-
-	//making a 12-bit full adder
-	logic pc_cin2;
-	FA_8 PC_next_branch1(
-		.in1(pc_next[7:0]),
-		.in2(branch_out[7:0]),
-      .cin(1'd0),
-		.sum(pc_next_branch[7:0]),
-		.overflow(pc_cin2));
-
-	logic fake_wire;
-	FA_4 PC_next_branch2(
-		.in1(pc_next[11:8]),
-		.in2(branch_out[11:8]),
-		.cin(pc_cin2),
-		.sum(pc_next_branch[11:8]),
-		.cout(fake_wire)); //not needed
-	//now we can select whether or not we want pc + 1 OR pc + 1 + branch_out
-
-	mux_1 #(.DATA_WIDTH(12)) next_branch(
-		.in0(pc_next), 
-		.in1(pc_next_branch), 
-		.sel(next_branch_selector), 
-		.out_val(pc_in));
 
 	//mem stage
 	//
 
 	// instantiate data memory
+	logic [7:0] 	mem_addr,    // data_mem address pointer
+					dat_in,  // data_mem data ports
+					dat_out,
+					lut_out; //output of our lut
+
 	assign mem_addr = rs_out;
 	assign dat_in = rd_out;
+
 	dat_mem dm(
 		.clk(clk),
-		.wen(wmem_en),
+		.wmem_en(wmem_en),
 		.addr(mem_addr),
-		.dat_in(dat_in),
+		.dat_in(dat_in), //for store operation (Rd's val)
 		.dat_out(dat_out));
 
 	//our LUTS for program 1
+
 	LUT_4 upper_lut(
 		.addr(mem_addr[7:4]),
 		.out_val(lut_out[7:4]));
@@ -255,17 +224,52 @@ module DUT(
 		.out_val(wb_out));
 	//
 
-endmodule
+	//
+	//NEXT PC LOGIC
+	//
 
-// # ** Warning: (vsim-3015) [PCDPC] - Port size (3) does not match connection size (1) for port 'in1'. The port definition is at: mux_1.sv(4).
-// #    Time: 0 ns  Iteration: 0  Instance: /test_bench/D1/rd_sel_mux File: DUT.sv Line: 138
-// # ** Warning: (vsim-3015) [PCDPC] - Port size (8) does not match connection size (9) for port 'out_val'. The port definition is at: extender.sv(6).
-// #    Time: 0 ns  Iteration: 0  Instance: /test_bench/D1/imm_ext File: DUT.sv Line: 164
-// # ** Warning: (vsim-3015) [PCDPC] - Port size (8) does not match connection size (9) for port 'in1'. The port definition is at: mux_1.sv(4).
-// #    Time: 0 ns  Iteration: 0  Instance: /test_bench/D1/alu_src_mux File: DUT.sv Line: 169
-// # ** Warning: (vsim-3015) [PCDPC] - Port size (8) does not match connection size (1) for port 'out_val'. The port definition is at: mux_1.sv(7).
-// #    Time: 0 ns  Iteration: 0  Instance: /test_bench/D1/alu_src_mux File: DUT.sv Line: 169
-// # ** Warning: (vsim-3015) [PCDPC] - Port size (8) does not match connection size (1) for port 'in2'. The port definition is at: ALU.sv(2).
-// #    Time: 0 ns  Iteration: 0  Instance: /test_bench/D1/alu File: DUT.sv Line: 175
-// # ** Warning: (vsim-3015) [PCDPC] - Port size (1) does not match connection size (32) for port 'is_sign_ext'. The port definition is at: extender.sv(4).
-// #    Time: 0 ns  Iteration: 0  Instance: /test_bench/D1/alu/zero_ext File: ALU.sv Line: 43
+	logic [11:0] pc_next;
+	logic pc_next_cin, unused_wire;
+
+	//12-bit FA to calc PC_next = PC + 1
+	FA_4 PC_next_calc_low( //calculates low 4 bits
+		.in1(pc_out[3:0]),
+      	.in2(4'd1),
+		.cin(1'd0),
+		.sum(pc_next[3:0]),
+		.cout(pc_next_cin)); 
+
+	FA_8 PC_next_calc_high( //calcs high 8 bits
+		.in1(pc_out[11:4]),
+		.in2(8'd0),
+      	.cin(pc_next_cin),
+		.sum(pc_next[11:4]),
+		.overflow(unused_wire));//we don't need this output
+
+	//calculate new PC with branch/jump:  PC w/ jump = PC+1+jamt
+	logic [11:0] pc_with_jbr;
+	logic pc_with_jbr_cin, unused_wire2;
+
+	FA_4 PC_jbr_calc_low( //note branch_out is a 12-bit sign-ext value
+		.in1(pc_next[3:0]),
+		.in2(branch_out[3:0]),
+      	.cin(1'd1),
+		.sum(pc_with_jbr[3:0]),
+		.cout(pc_with_jbr_cin));
+
+	FA_8 PC_jbr_calc_high(
+		.in1(pc_next[11:4]),
+		.in2(branch_out[11:4]),
+		.cin(pc_with_jbr_cin),
+		.sum(pc_with_jbr[11:4]),
+		.overflow(unused_wire2)); //not needed
+
+	//now we can select whether or not we want pc + 1 OR pc + 1 + branch_out
+
+	mux_1 #(.DATA_WIDTH(12)) next_branch(
+		.in0(pc_next), 
+		.in1(pc_with_jbr), 
+		.sel(sel_pc_next), 
+		.out_val(pc_in));
+
+endmodule

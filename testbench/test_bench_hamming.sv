@@ -23,6 +23,7 @@ module test_bench;
   end
 
   initial begin
+//     $dumpfile("dump.vcd"); $dumpvars;
 // load operands for program 1 into data memory
 // 16 8-bit operands go into data_mem [0:15]
 // mem[16,17] = min & max Hamming distances among sdata pairs
@@ -30,12 +31,18 @@ module test_bench;
 	Min = 'd8;						         // start test bench Min at max value
 	Max = 'd0;						         // start test bench Max at min value
     $readmemb("test1_2.txt",D1.dm.core);
-    $readmemb("prog1_mcode.txt", D1.im.instr_core);
+    $readmemb("mcode_small.txt", D1.im.instr_core);
     for(int i=0; i<16; i++) begin
       Tmp[i] = {D1.dm.core[i]};
       $display("%d:  %b",i,Tmp[i]);
 	end
 	$display();                              // line-space
+
+    $display("instructions:");
+    for(int i=0; i<62; i++) begin
+      $display("%d:  %b",i,D1.im.instr_core[i]);
+	end
+    
 // DUT data memory preloads beyond [15] (next 3 lines of code)
     D1.dm.core[16] = 'd8;		             // preset DUT final Min 
     for(int r=17; r<256; r++)
@@ -59,10 +66,9 @@ module test_bench;
     end   
 	// D1.dm.core[16] = Min;
 	// D1.dm.core[17] = Max;
-  $display("PC: %d", D1.prog_ct.out_val);
 	#200ns reset = 'b0;
 	#200ns start = 'b0; 
-    #200ns wait (done);						 // avoid false done signals on startup
+//     #200ns wait (done);						 // avoid false done signals on startup
 								 
 // check results in data_mem[64] and [65] (Minimum and Maximum distances, respectively)
     if(Min == D1.dm.core[16]) $display("good Min = %d",Min);

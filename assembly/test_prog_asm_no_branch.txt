@@ -1,0 +1,62 @@
+ADDI 0d1
+ADD $1, $0
+ADDI 0d1
+ADD $2, $0
+ADDI 0d1
+ADD $3, $0
+ADDI 0d1
+ADD $4, $0
+ADDI 0d1
+ADD $5, $0
+ADDI 0d1
+ADD $6, $0
+ADDI 0d1
+ADD $7, $0
+SBMEM $7, $0
+ADDI 0d-1
+SBMEM $6, $0
+ADDI 0d-1
+SBMEM $5, $0
+ADDI 0d-1
+SBMEM $4, $0
+ADDI 0d-1
+SBMEM $3, $0
+ADDI 0d-1
+SBMEM $2, $0
+ADDI 0d-1
+SBMEM $1, $0
+ADDI 0d-1
+SBMEM $0, $0 //should have mem that is MEM[i] = i
+XOR $0, $0
+XOR $1, $1
+XOR $0, $0
+XOR $2, $2
+XOR $3, $3
+XOR $4, $4
+XOR $5, $5
+XOR $6, $6
+XOR $7, $7 //should zero all the registers
+ADDI 0d1
+ADD $3, $0 //holds shift value
+XOR $0, $0
+LBMEM $0, $0
+SHL $0, $3
+ADDI 0d1
+LBMEM $1, $0
+SHL $1, $3
+ADDI 0d1
+LBMEM $2, $0
+SHL $2, $3
+ADDI 0d2 //skip R3
+LBMEM $4, $0
+SHL $4, $3
+ADDI 0d1
+LBMEM $5, $0
+SHL $5, $3
+ADDI 0d1
+LBMEM $6, $0
+SHL $6, $3
+ADDI 0d1
+LBMEM $7, $0
+SHL $7, $3
+DONE
