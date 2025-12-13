@@ -10,7 +10,7 @@ module LUT_4(
             //hamming dist 1
             4'b0001,
             4'b0010,
-            4'b0100
+            4'b0100,
             4'b1000 : out_val = 4'd1;
             //hamming dist 2
             4'b0011,
