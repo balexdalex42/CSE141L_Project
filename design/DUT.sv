@@ -62,14 +62,14 @@ module DUT(
 	FA_8 PC_next1(
 		.in1(pc_out[7:0]),
 		.in2(8'd1),
-		.cin(0),
+      .cin(1'd0),
 		.sum(pc_next[7:0]),
 		.overflow(pc_cin1));
 
 	logic fake_wire2;
 	FA_4 PC_next2(
 		.in1(pc_out[11:8]),
-		.in2(0),
+      .in2(4'd0),
 		.cin(pc_cin1),
 		.sum(pc_next[11:8]),
 		.cout(fake_wire2)); //we don't need this output
@@ -118,12 +118,12 @@ module DUT(
 	logic [2:0] rs_1b_to_full, rs_2b_to_full;
 	extender #(.INPUT_WIDTH(1), .DATA_WIDTH(3)) rs_1b_ext( //For B-Type
 		.in(instr[3]), 
-		.is_sign_ext(0), 
+      .is_sign_ext(1'd0), 
 		.out_val(rs_1b_to_full));
 		
 	extender #(.INPUT_WIDTH(2), .DATA_WIDTH(3)) rs_2b_ext( //for S-Type
 		.in(instr[4:3]), 
-		.is_sign_ext(0), 
+      .is_sign_ext(1'd0), 
 		.out_val(rs_2b_to_full));
 
 	mux_2  #(.DATA_WIDTH(3)) rs_sel_mux(
@@ -163,7 +163,7 @@ module DUT(
 	logic [8:0] imm_full;
 	extender #(.INPUT_WIDTH(6)) imm_ext(
 		.in(imm), 
-		.is_sign_ext(1), 
+      .is_sign_ext(1'd1), 
 		.out_val(imm_full));
 
 	mux_1 alu_src_mux(
@@ -187,7 +187,7 @@ module DUT(
 	//branching logic; when we branch we take our output from ALU and extend it, and either choose that or our OG PC
 	extender #(.INPUT_WIDTH(8), .DATA_WIDTH(12)) alu_sign_extender12(
 		.in(alu_out),
-		.is_sign_ext(1), //0 = zero_ext, 1 = sign_ext
+      .is_sign_ext(1'd1), //0 = zero_ext, 1 = sign_ext
 		.out_val(branch_out));
 
 	//making a 12-bit full adder
@@ -195,7 +195,7 @@ module DUT(
 	FA_8 PC_next_branch1(
 		.in1(pc_next[7:0]),
 		.in2(branch_out[7:0]),
-		.cin(0),
+      .cin(1'd0),
 		.sum(pc_next_branch[7:0]),
 		.overflow(pc_cin2));
 
@@ -255,4 +255,3 @@ module DUT(
 	//
 
 endmodule
-										
