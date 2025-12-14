@@ -1,5 +1,3 @@
-`timescale 1ns/1ps
-
 module tb_alu;
     logic [7:0] in1, in2;
     logic [1:0] alu_op;
@@ -23,7 +21,7 @@ module tb_alu;
 
     // Test procedure
     initial begin
-        $dumpfile("alu_dump.vcd"); 
+        $dumpfile("dump.vcd"); 
         $dumpvars;
 
         // Initialize all signals
@@ -54,6 +52,14 @@ module tb_alu;
         #10;
         $display("%0t\tAND\t%b\t%b\t%b\t%b\t%b\t%h\t%h\t\t%h\t%h\tANDB (LSB=1)", 
                  $time, alu_op, sub, branch, branch_sel, shift_left, in1, in2, out_val, in1);
+
+        // Test 3.5: ANDB (Op 01) - Mask with LSB 0
+        // 10101010 & 00000001 (LSB is 1) -> Output should be Input 1
+        in1 = 8'b10101010; in2 = 8'b11111110;
+        alu_op = 2'b01;
+        #10;
+        $display("%0t\tAND\t%b\t%b\t%b\t%b\t%b\t%h\t%h\t\t%h\t0\tANDB (LSB=1)", 
+                 $time, alu_op, sub, branch, branch_sel, shift_left, in1, in2, out_val);
 
         // Test 4: XOR (Op 10)
         // 11110000 ^ 10101010 = 01011010 (0x5A)
@@ -102,14 +108,80 @@ module tb_alu;
         $display("%0t\tBLT\t%b\t%b\t%b\t%b\t%b\t%d\t%d\t\t%d\t1\tBranch Less Than (True)", 
                  $time, alu_op, sub, branch, branch_sel, shift_left, in1, in2, out_val);
 
+        // Test 9.25: BLT Check (branch_sel = 01 for Sign Flag) - Negative Result
+        // 10 - 20 = -10 (Negative). Sign flag is 1. Output should be 1.
+        in1 = -8'd31; in2 = 8'd0;
+        branch_sel = 2'b01; // Sign flag
+        #10;
+        $display("%0t\tBLT\t%b\t%b\t%b\t%b\t%b\t%d\t%d\t\t%d\t1\tBranch Less Than (True)", 
+                 $time, alu_op, sub, branch, branch_sel, shift_left, in1, in2, out_val);
+
+        // Test 9.5: BLT Check (branch_sel = 01 for Sign Flag) - Negative Result
+        // 10 - 20 = -10 (Negative). Sign flag is 1. Output should be 1.
+        in1 = -8'd31; in2 = -8'd30;
+        branch_sel = 2'b01; // Sign flag
+        #10;
+        $display("%0t\tBLT\t%b\t%b\t%b\t%b\t%b\t%d\t%d\t\t%d\t1\tBranch Less Than (True)", 
+                 $time, alu_op, sub, branch, branch_sel, shift_left, in1, in2, out_val);
+
+        // Test 9.56: BLT Check (branch_sel = 01 for Sign Flag) - Negative Result
+        // 10 - 20 = -10 (Negative). Sign flag is 1. Output should be 1.
+        in1 = -8'd128; in2 = 8'd127;
+        branch_sel = 2'b01; // Sign flag
+        #10;
+        $display("%0t\tBLT\t%b\t%b\t%b\t%b\t%b\t%d\t%d\t\t%d\t1\tBranch Less Than (True)", 
+                 $time, alu_op, sub, branch, branch_sel, shift_left, in1, in2, out_val);
+
+        // Test 9.57: BLT Check (branch_sel = 01 for Sign Flag) - Negative Result
+        // 10 - 20 = -10 (Negative). Sign flag is 1. Output should be 1.
+        in1 = 8'd127; in2 = -8'd128;
+        branch_sel = 2'b01; // Sign flag
+        #10;
+        $display("%0t\tBLT\t%b\t%b\t%b\t%b\t%b\t%d\t%d\t\t%d\t0\tBranch Less Than (False)", 
+                 $time, alu_op, sub, branch, branch_sel, shift_left, in1, in2, out_val);
+
+        // Test 9.75: BLT Check (branch_sel = 01 for Sign Flag) - Negative Result
+        // 10 - 20 = -10 (Negative). Sign flag is 1. Output should be 1.
+        in1 = 8'd42; in2 = 8'd42;
+        branch_sel = 2'b01; // Sign flag
+        #10;
+        $display("%0t\tBLT\t%b\t%b\t%b\t%b\t%b\t%d\t%d\t\t%d\t0\tBranch Less Than (False)", 
+                 $time, alu_op, sub, branch, branch_sel, shift_left, in1, in2, out_val);
+
+        // Test 9.76: BLT Check (branch_sel = 01 for Sign Flag) - Negative Result
+        // 10 - 20 = -10 (Negative). Sign flag is 1. Output should be 1.
+        in1 = 8'd0; in2 = -8'd3;
+        branch_sel = 2'b01; // Sign flag
+        #10;
+        $display("%0t\tBLT\t%b\t%b\t%b\t%b\t%b\t%d\t%d\t\t%d\t0\tBranch Less Than (False)", 
+                 $time, alu_op, sub, branch, branch_sel, shift_left, in1, in2, out_val);
+
+        // Test 9.99: BLT Check (branch_sel = 01 for Sign Flag) - Negative Result
+        // 10 - 20 = -10 (Negative). Sign flag is 1. Output should be 1.
+        in1 = -8'd127; in2 = -8'd128;
+        branch_sel = 2'b01; // Sign flag
+        #10;
+        $display("%0t\tBLT\t%b\t%b\t%b\t%b\t%b\t%d\t%d\t\t%d\t0\tBranch Less Than (False)", 
+                 $time, alu_op, sub, branch, branch_sel, shift_left, in1, in2, out_val);
+
         // Test 10: BOV Check (branch_sel = 10 for Overflow)
         // 127 - (-1) = 128 (Overflow in signed 8-bit). Overflow flag is 1.
-        in1 = 8'd127; in2 = 8'b11111111; // -1
-        sub = 1; 
+        in1 = 8'b01111111; in2 = 8'b11111111; // -1
+        sub = 0; 
         branch_sel = 2'b10; // Overflow flag
         #10;
         $display("%0t\tBOV\t%b\t%b\t%b\t%b\t%b\t%d\t%d\t\t%d\t1\tBranch Overflow (True)", 
                  $time, alu_op, sub, branch, branch_sel, shift_left, in1, in2, out_val);
+
+        // Test 10.5: BOV Check (branch_sel = 10 for Overflow)
+        // 127 - (-1) = 128 (Overflow in signed 8-bit). Overflow flag is 1.
+        in1 = 8'b01111111; in2 = 8'b00000001; // -1
+        sub = 0; 
+        branch_sel = 2'b10; // Overflow flag
+        #10;
+        $display("%0t\tBOV\t%b\t%b\t%b\t%b\t%b\t%d\t%d\t\t%d\t0\tBranch Overflow (False)", 
+                 $time, alu_op, sub, branch, branch_sel, shift_left, in1, in2, out_val);
+
 
         $finish;
     end
