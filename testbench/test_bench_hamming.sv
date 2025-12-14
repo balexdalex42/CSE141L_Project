@@ -31,7 +31,7 @@ module test_bench;
 	Min = 'd8;						         // start test bench Min at max value
 	Max = 'd0;						         // start test bench Max at min value
     $readmemb("test1_2.txt",D1.dm.core);
-    $readmemb("mcode_small.txt", D1.im.instr_core);
+    $readmemb("loop_test_mcode.txt", D1.im.instr_core);
     for(int i=0; i<16; i++) begin
       Tmp[i] = {D1.dm.core[i]};
       $display("%d:  %b",i,Tmp[i]);

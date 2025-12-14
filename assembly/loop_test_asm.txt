@@ -1,0 +1,10 @@
+ADDI 0d8
+ADD $7, $0
+XOR $0, $0
+ADDI 0d1
+ADD $1, $0
+XOR $0, $0
+ADDI 0d10
+BEQ $7, $1
+JUMP 0d-17 //(jump to 3, 3-9-1 = -7)
+DONE

@@ -253,7 +253,7 @@ module DUT(
 	FA_4 PC_jbr_calc_low( //note branch_out is a 12-bit sign-ext value
 		.in1(pc_next[3:0]),
 		.in2(branch_out[3:0]),
-      	.cin(1'd1),
+      	.cin(1'd0),
 		.sum(pc_with_jbr[3:0]),
 		.cout(pc_with_jbr_cin));
 
