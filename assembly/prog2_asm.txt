@@ -4,9 +4,9 @@ LBMEM $6, $0 //load second multiplicand
 ADD $1, $6
 XOR $1, $7 //take the XOR, we are going to see if the XOR is signed (if the MSB is 1) and store that in mem
 XOR $0, $0
-ADDI 0d6
+ADDI 0d6 //r0 is 6
 SBMEM $1, $0 //store that XOR quantity into mem[6] 
-ADDI 0d8 //we are trying to load 0xff into $1
+ADDI 0d9 //we are trying to load 0xff into $1, so make r0 = 0xf
 XOR $1, $1
 ADD $1, $0
 XOR $0, $0
@@ -21,24 +21,39 @@ ADD $5, $1 //let's keep 0xff while we can
 XOR $1, $1
 XOR $0, $0
 BLT $7, $0 //see if $7 is negative
-JUMP 0d4 //jump to line 28 (potentially flipping the sign of the next multiplicand)
+JUMP 0d3 //jump to line 28 (potentially flipping the sign of the next multiplicand)
 XOR $7, $5 //if it is let's unsign it
 ADDI 0d1
 ADD $7, $0 //value in $7 got flipped
 XOR $0, $0
 BLT $6, $0 //see if $6 is negative
-JUMP 0d7 //jump to line 38 (potentially flipping the sign of the next multiplicand)
+JUMP 0d3 //jump to line 34 (potentially flipping the sign of the next multiplicand)
 XOR $6, $5 //if it is let's unsign it
+ADDI 0d1
 ADD $6, $0 //value in $7 got flipped
+XOR $2, $2 //low product bits
+XOR $3, $3 //high product bits
 XOR $1, $1 //will use this to store i
-XOR $0, $0 //let's start the loop now (only need 7 iterations since MSB of second multiplicand is 0 guaranteed) ***************LOOP STARTS HERE
+XOR $4, $4 //need to load 7 into R4 for BLT statement LOOP STARTS HERE **********************************************
+XOR $0, $0
+ADDI 0d7
+ADD $4, $0 //R5 has 7
+XOR $1, $4 
+XOR $4, $1
+XOR $1, $4 //switch R1 and R4 (i is in R4 now)
+ADDI 0d31 //R0 now has 38
+BLT $4, $1 // i < 7 ? only need to iterate 7 times because multiplicands are positive (MSB is 0)
+JUMP 0d-5 //line 80 (80-46-1 = 33)
+XOR $1, $4 
+XOR $4, $1
+XOR $1, $4 //switch R1 and R4 again so i is in R1 again
 XOR $4, $4 //zero out R4
 ADD $4, $7 //R4 will be the temp holder of R7 for ANDB
 ANDB $4, $6 //we see if R6[0] is 1, if it is R4 = R4, if not R4 = 0
 XOR $0, $0 
-BEQ $4, $0 
-JUMP 0d1   
-JUMP 0d17  // Jump to i++ (Skip the addition logic)
+BEQ $4, $0 //is LSB of 4 = 0?
+JUMP 0d1   //go to addition section
+JUMP 0d17  // Jump to i++ (SKIP ADDITION SECTION since $4 is 0) line 65 (65-47-1=17)
 SHL $4, $1 //$4 will have the bottom bits (need to shift left per iteration #)
 XOR $0, $0
 ADD $0, $4 // Copy R4 to R0 for BOV check
@@ -56,28 +71,22 @@ XOR $0, $5
 ADDI 0d1 // R0 = -(i-8)= 8-i (our right shift amount!)
 SHR $4, $0 //this will now go into our top 8 bits
 ADD $3, $4
-XOR $0, $0 //JUMP HERE IF ANDB results in 0 **************************
+XOR $0, $0 //JUMP HERE IF ANDB results in 0 ******************************************
 ADDI 0d1
 ADD $1, $0 //i++
 SHR $6, $0 //shift the 2nd multiplicand right
-XOR $4, $4
-ADDI 0d6
-ADD $4, $0 //R4 has val 7
-XOR $0, $0
-ADDI 0d-18 // Pre-load R0 with half the jump distance
-ADDI 0d-18 // Pre-load R0 with the rest (-36 total)
-BEQ $4, $1 // If i == 7, skip the jump (Fall through to exit)
-JUMP 0d0   // Else, Jump PC + 1 + R0 (-36) -> Back to Loop Start
-XOR $0, $0 // Clear R0 (since it was -36) before continuing
+ADDI 0d-32 //R0 has -31
+JUMP 0d-12   // JUMP BACK TO START OF LOOP line 37 (37-79-1=-43)
+XOR $0, $0 // JUMP HERE After Done with loop *****************************************************
 XOR $1, $1 //we now need to see if our final product needs to be turned negative or not (based on the XOR val from the start)
 XOR $0, $0
 ADDI 0d6
 LBMEM $1, $0 //load the XOR value back
 XOR $0, $0
 BLT $1, $0 //test to see if the XOR < 0 (checking if sign bit is up)
-JUMP 0d11 //if not signed go straight to mem writing (instr 83)
+JUMP 0d11 //if not signed go straight to mem writing (instr 98)
 XOR $2, $5
-XOR $3, $5 //flip bits of top and bottom
+XOR $3, $5 //flip bits of top and bottom bits
 XOR $0, $0
 ADDI 0d1
 XOR $1, $1

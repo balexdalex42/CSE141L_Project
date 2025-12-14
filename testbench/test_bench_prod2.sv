@@ -11,7 +11,8 @@ module test_bench;
   wire done;					 // you return 1 when finished
 
   logic signed[ 7:0] OpA, OpB;
-  logic signed[15:0] Prod;	    // holds 2-byte product		  
+  logic signed[15:0] Prod;	    // holds 2-byte product	
+  logic signed[15:0] Actual_Prod;	  
 
   DUT D1(.clk  (clk  ),	        // your design goes here
          .reset(reset),
@@ -24,17 +25,20 @@ module test_bench;
   end
 
   initial begin				   // todo: wrap this in one big FOR loop
+    $readmemb("prog2_mcode.txt", D1.im.instr_core);
     #100ns;
     OpA =  2;		           // generate operands
     OpB = -4;				   // for now, try out different values 
     D1.dm.core[0] = OpA;
-    D1.dm.core[1] = OpB;	   // load values into mem, copy to Tmp array
+    D1.dm.core[1] = OpB;	   // load values into mem, copy to Tmp array    //     $readmemb("loop_test_mcode.txt", D1.im.instr_core);
     #10ns   $display("%d, %d",OpA, OpB);
 // 	compute correct answers
     #10ns  Prod = OpA * OpB;		      // compute prod.
     #10ns  reset = 'b0;
 	#10ns start = 'b0; 							  
     #200ns wait (done);						          // avoid false done signals on startup
+    Actual_Prod = {D1.dm.core[3], D1.dm.core[2]};
+    $display("Simulated product: %d", Actual_Prod);
     if({D1.dm.core[3],D1.dm.core[2]} == Prod)
 	    $display("Yes! %d * %d = %d",OpA,OpB,Prod);
 	  else

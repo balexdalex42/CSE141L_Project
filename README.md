@@ -1,1 +1,1 @@
-# CSE141L_Project
+# CSE141L_Project (David Hong and Alexander Tatoian)
