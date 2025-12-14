@@ -51,7 +51,7 @@ module controller(
     assign alu_src = (opcode[2:1] == 2'b00); //I-Types are 00X
 
     //shift_left for our shifter in ALU
-    assign shift_left = branch_bits[1];
+    assign shift_left = ~branch_bits[1]; // remember instr[5] == 0 means shl and shr is the opposite
 
     //use_lut, will determine whether to read from memory(0) or lut (1)
     assign use_lut = branch_bits[0]; //using LUT=01 , 11 case doesn't matter because it isn't a mem access!
